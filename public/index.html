@@ -130,7 +130,7 @@
             google.maps.event.addListener(marker, "click", function() {
                 if(infowindow) infowindow.close();
                 infowindow = new google.maps.InfoWindow({
-                    content: '<b>' + shop.name + '</b><div>' + shop.detail + '</div>'
+                    content: showShopList(shop)
                 });
                 return infowindow.open(this.map, marker);
             });
