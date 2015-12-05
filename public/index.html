@@ -7,36 +7,57 @@
     html, body { height: 100%; margin: 0; padding: 0; }
     #map { height: 100%; }
     #shop_list{position: absolute; left:0px; top:50px; background: white; padding:10px;}
+    #search{margin:5px; }
     </style>
     <script src="https://code.jquery.com/jquery-git2.min.js"> </script>
 </head>
 <body>
     <div id="map"></div>
     <div id="shop_list">
+        <div id="search">
+            <input type="text">
+        </div>
         <ul>
         </ul>
     </div>
     <script type="text/javascript">
     (function() {
-        var setShops, initialize, infowindow;
+        var setShops, initialize, infowindow, markers=[];
+        var defaultShops = [
+            {
+                name: "すし半",
+                users: [{
+                    school: "大垣市立小野小学校",
+                    age: 68
+                }],
+                lat: 35.364726,
+                lng: 136.617108
+            },
+            {
+                name: "えびす食堂",
+                users: [{
+                    school: "大垣市立中川小学校",
+                    age: 68
+                }],
+                lat: 35.366598,
+                lng: 136.618713
+            },
+            {
+                name: "芭蕉",
+                users: [{
+                    school: "大垣市立墨俣小学校",
+                    age: 54
+                }],
+                lat: 35.364197,
+                lng: 136.61713
+            }
+        ];
 
         this.start_func = function() {
-            var shops = [
-                {
-                    name: "すし半",
-                    detail: "男性60代 10人",
-                    lat: 35.364726,
-                    lng: 136.617108
-                },
-                {
-                    name: "芭蕉",
-                    detail: "男性60代 11人",
-                    lat: 35.364197,
-                    lng: 136.61713
-                },
-            ];
+            var shops = defaultShops;
             initialize();
             setShops(shops);
+            searchShop();
         };
 
         initialize = function() {
@@ -51,19 +72,41 @@
 
         setShops = function(shops) {
             var LatLng, _, marker, markerOptions, shop;
+            var $shop_list = $('#shop_list ul');
+            $shop_list.html('');
+            for (var i = 0; i < markers.length; i++) {
+                markers[i].setMap(null);
+            }
             for (_ in shops) {
                 shop = shops[_];
-                $('#shop_list ul').append('<li><b>' + shop.name + '</b><div>' + shop.detail + '</div></li>' );
+                $shop_list.append(showShopList(shop));
                 LatLng = new google.maps.LatLng(shop.lat, shop.lng);
                 markerOptions = {
                     position: LatLng,
                     map: this.map,
                     title: "name is " + shop.name
                 };
-                marker = new google.maps.Marker(markerOptions);
-                showInfoWindow(marker, shop);
+                markers[_] = new google.maps.Marker(markerOptions);
+                showInfoWindow(markers[_], shop);
             }
-        };
+        }
+
+        searchShop = function() {
+            $('#search input').on('change', function(e){
+                var shops = [];
+                for (var i = 0; i < defaultShops.length; i++) {
+                    var _shop = defaultShops[i];
+                    // 複数バグ
+                    for (var j = 0; j < _shop.users.length; j++) {
+                        var _user = _shop.users[j];
+                        if (_user.school.indexOf(e.target.value) != -1) {
+                            shops.push(_shop);
+                        }
+                    }
+                }
+                setShops(shops);
+            });
+        }
 
         showInfoWindow = function(marker, shop) {
             google.maps.event.addListener(marker, "click", function() {
@@ -73,6 +116,16 @@
                 });
                 return infowindow.open(this.map, marker);
             });
+        }
+
+        showShopList = function(shop) {
+            var list = '<li><b>' + shop.name + '</b>';
+            for (var i = 0; i < shop.users.length; i++) {
+                user = shop.users[i];
+                list += '<div>'+ user.school +'</div>';
+            }
+            list += '</li>';
+            return list;
         }
 
     }).call(this);
